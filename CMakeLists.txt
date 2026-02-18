@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 project(bezier_playground LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(SDL2 REQUIRED)
 
@@ -35,7 +36,7 @@ target_link_libraries(imgui_backends PUBLIC imgui SDL2::SDL2)
 file(GLOB_RECURSE SOURCES src/*.cpp)
 file(GLOB_RECURSE HEADERS include/*.hpp)
 
-add_executable(bezier_playground main.cpp ${SOURCES})
+add_executable(bezier_playground ${SOURCES})
 target_include_directories(bezier_playground PRIVATE
   ${CMAKE_SOURCE_DIR}/include
   ${IMGUI_DIR}
