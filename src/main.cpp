@@ -9,7 +9,9 @@
 #include <SDL_stdinc.h>
 #include <SDL_timer.h>
 
+#include <SDL_video.h>
 #include <array>
+#include <cstddef>
 #include <cstdlib>
 #include <iostream>
 #include <vector>
@@ -17,10 +19,29 @@
 #include "utils.hpp"
 #include "input.hpp"
 
-static SDL_Window *gWindow = nullptr;
-static SDL_Renderer *gRenderer = nullptr;
-static SDL_Texture *gTexture = nullptr;
+static SDL_Window*    gWindow = nullptr;
+static SDL_Renderer*  gRenderer = nullptr;
+static SDL_Texture*   gTexture = nullptr;
+static SDL_Texture*   gTexture2 = nullptr;
+static SDL_Rect       destRect{100,100,TEXTURE_WIDTH/2, TEXTURE_HEIGHT/2};
 static bool gRunning = true;
+
+std::vector<SDL_Point> gCircles{};
+
+// TODO
+// [ ] Put frame rate into Metrics window, add TTF_Font 
+// [ ] Render circle via click
+
+// refactor for better architecture
+// - [ ] AppState
+// - [ ] Event registtration, so when I click, app listeners can update
+// - [ ] Lots of things to wire up, background should be dictated by an imgui color wheel,
+
+// Key Objects
+// App
+//  - owns the window
+//  - initializes SDL mechanisms
+//  - handles the main loop
 
 bool init();
 bool init_imgui();
@@ -31,17 +52,14 @@ void render_imgui();
 void present();
 void cleanup();
 
-Start here:
-add to the event callbacks
-get mouse click to add rects 
-bezier between them
+void render_circle(int x, int y, int radius);
 
 int main(int, char **) {
 
   if (!init()) {
     return -1;
   }
-
+  
   while (gRunning) {
     input();
     update();
@@ -58,9 +76,10 @@ bool init() {
     return false;
   }
 
-  gWindow = SDL_CreateWindow("Bezier Playground", SDL_WINDOWPOS_CENTERED,
-                             SDL_WINDOWPOS_CENTERED, WINDOW_WIDTH,
-                             WINDOW_HEIGHT, SDL_WINDOW_RESIZABLE);
+  Uint32 window_flags = SDL_WINDOW_RESIZABLE;
+  gWindow = SDL_CreateWindow("Bezier Playground", SDL_WINDOWPOS_UNDEFINED,
+                             SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH,
+                             WINDOW_HEIGHT, window_flags);
   if (!gWindow) {
     std::cerr << "SDL_Window error: " << SDL_GetError() << std::endl;
     return false;
@@ -78,6 +97,15 @@ bool init() {
 
   if (!gTexture) {
     std::cerr << "SDL_Texture error: " << SDL_GetError() << std::endl;
+    return false;
+  }
+
+  gTexture2 = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_RGBA8888,
+                               SDL_TEXTUREACCESS_TARGET, TEXTURE_WIDTH/2,
+                               TEXTURE_HEIGHT/2);
+
+  if (!gTexture2) {
+    std::cerr << "SDL_Texture2 error: " << SDL_GetError() << std::endl;
     return false;
   }
 
@@ -102,12 +130,23 @@ void input() {
   SDL_Event event;
   while (SDL_PollEvent(&event)) {
     ImGui_ImplSDL2_ProcessEvent(&event);
-    if (event.type == SDL_QUIT)
-      gRunning = false;
+    switch (event.type) {
+      case SDL_QUIT:
+        gRunning = false;
+      case SDL_KEYDOWN: 
+        handleKeyboardEvent(event.key, gRunning);
+        return;
+      case SDL_KEYUP:
+        handleKeyboardEvent(event.key, gRunning);
+      case SDL_MOUSEBUTTONDOWN:
+        handleMouseButtonEvent(event.button, gCircles);
+        return;
+      case SDL_MOUSEBUTTONUP:
+        handleMouseButtonEvent(event.button, gCircles);
+        return;
 
-    if(event.type == SDL_KEYDOWN) {
-      handleKeydownEvent(event.key, gRunning);
     }
+
   }
 }
 
@@ -125,10 +164,10 @@ void render_imgui() {
   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize(ImVec2(400, 0), ImGuiCond_FirstUseEver);
   SDL_SetRenderTarget(gRenderer, gTexture);
-  SDL_SetRenderDrawColor(gRenderer, 255, 255, 255, 0xFF);
-  SDL_RenderClear(gRenderer);
+  SDL_SetRenderDrawColor(gRenderer, 255, 0xAF, 255, 0xFF);
+  SDL_RenderClear(gRenderer);// flush the texture with the above color
   SDL_SetRenderTarget(gRenderer, nullptr);
-  ImGui::Begin("TestWindow", nullptr, 0);
+  ImGui::Begin("Metrics", nullptr, 0);
   ImGui::Image((ImTextureID)(intptr_t)gTexture,
                ImVec2((float)TEXTURE_WIDTH, (float)TEXTURE_HEIGHT));
   ImGui::End();
@@ -144,24 +183,31 @@ void present() {
 }
 
 void render() {
+  
   render_imgui();
-
   const double now = (double)SDL_GetTicks() / 1000; // seconds
   const float red = 0.5 + 0.5 * SDL_sin(now);
   const float green = 0.5 + 0.5 * SDL_sin(now + PI * 1 / 3);
   const float blue = 0.5 + 0.5 * SDL_sin(now + PI * 5 / 3);
-
+  
   const uint8_t r = static_cast<uint8_t>(red * 0xFF);
   const uint8_t g = static_cast<uint8_t>(green * 0xFF);
   const uint8_t b = static_cast<uint8_t>(blue * 0xFF);
-
+  
   SDL_SetRenderDrawColor(gRenderer, r, g, b, 0xFF);
+  SDL_RenderClear(gRenderer); // default target == window
+  
+  for (auto point : gCircles) {
+    render_circle(point.x, point.y, 20);
+  }
+  // Rendering happens here
+  SDL_SetRenderDrawColor(gRenderer, g, r, b, 0xFF);
+  SDL_SetRenderTarget(gRenderer, gTexture2);
   SDL_RenderClear(gRenderer);
-
-  // Other rendering for my application comes here
-
-  // SDL_SetRenderDrawColor(gRenderer, g, r, b, 0xFF);
-
+  SDL_SetRenderDrawColor(gRenderer, 0x00, 0xFF, 0xFF, 0xFF);
+  SDL_RenderDrawLine(gRenderer, 0, 0, 100, 100);
+  SDL_SetRenderTarget(gRenderer, nullptr);
+  SDL_RenderCopy(gRenderer, gTexture2, NULL, &destRect);
   present();
 }
 
@@ -169,7 +215,36 @@ void cleanup() {
   ImGui_ImplSDLRenderer2_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
+  SDL_DestroyTexture(gTexture2);
+  SDL_DestroyTexture(gTexture);
   SDL_DestroyRenderer(gRenderer);
   SDL_DestroyWindow(gWindow);
   SDL_Quit();
+}
+
+void render_circle(int x, int y, int r) {
+  Uint8 red = 0xFF;
+  Uint8 green = 0x0F;
+  Uint8 blue = 0x5F;
+  SDL_SetRenderDrawColor(gRenderer, red, green, blue, 0xFF);
+
+  std::vector<SDL_Point> pointBuffer{};
+  
+  //bounds
+  int upperBound = y + r;
+  int lowerBound = y - r;
+
+  // TODO -- improve using symmetry
+  for (int i = lowerBound; i < upperBound; i++) {
+    int xLeft = x - sqrt(r*r - (std::pow(i - y,2)));
+    int xRight = x + sqrt(r*r - (std::pow(i - y,2)));
+
+    while (xLeft < xRight) {
+      int xValue = xLeft;
+      pointBuffer.push_back(SDL_Point{xValue,i});
+      xLeft++;
+    }
+  }
+
+  SDL_RenderDrawPoints(gRenderer, pointBuffer.data(), pointBuffer.size());
 }
