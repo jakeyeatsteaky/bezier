@@ -37,6 +37,10 @@ std::vector<SDL_Point> gCircles{};
 // - [ ] Event registtration, so when I click, app listeners can update
 // - [ ] Lots of things to wire up, background should be dictated by an imgui color wheel,
 
+// Refactor
+// - [ ] Still cleaning up the main file so i can jhust call app.run
+// - [ ] maybe add imgui manager
+
 bool init(const App& app);
 bool init_imgui(const App& app);
 void input();
