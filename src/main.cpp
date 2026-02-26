@@ -16,14 +16,14 @@
 #include <iostream>
 #include <vector>
 
+#include "App.hpp"
+#include "Texture.hpp"
 #include "utils.hpp"
 #include "input.hpp"
 
-static SDL_Window*    gWindow = nullptr;
-static SDL_Renderer*  gRenderer = nullptr;
 static SDL_Texture*   gTexture = nullptr;
 static SDL_Texture*   gTexture2 = nullptr;
-static SDL_Rect       destRect{100,100,TEXTURE_WIDTH/2, TEXTURE_HEIGHT/2};
+static SDL_Rect       destRect{100,100,TEXTURE_WIDTH, TEXTURE_HEIGHT};
 static bool gRunning = true;
 
 std::vector<SDL_Point> gCircles{};
@@ -37,83 +37,53 @@ std::vector<SDL_Point> gCircles{};
 // - [ ] Event registtration, so when I click, app listeners can update
 // - [ ] Lots of things to wire up, background should be dictated by an imgui color wheel,
 
-// Key Objects
-// App
-//  - owns the window
-//  - initializes SDL mechanisms
-//  - handles the main loop
-
-bool init();
-bool init_imgui();
+bool init(const App& app);
+bool init_imgui(const App& app);
 void input();
 void update();
-void render();
-void render_imgui();
-void present();
+void render(const App& app);
+void render_imgui(const App& app);
+void present(const App& app);
 void cleanup();
 
-void render_circle(int x, int y, int radius);
+void render_circle(const App& app, int x, int y, int radius);
 
 int main(int, char **) {
 
-  if (!init()) {
+  App app;
+
+  app.init();
+
+  // should Texture take a reference to the App or a pointer
+  Texture imguiTexture(app.getRenderer());
+  Texture texture(app.getRenderer());
+
+  app.addTexture(imguiTexture.getTexture());
+  app.addTexture(texture.getTexture());
+
+  if (!init(app)) {
     return -1;
   }
   
   while (gRunning) {
     input();
     update();
-    render();
+    render(app);
   }
 
   cleanup();
   return 0;
 }
 
-bool init() {
-  if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-    std::cerr << "SDL_Init error: " << SDL_GetError() << std::endl;
-    return false;
-  }
+bool init(const App& app) {
 
-  Uint32 window_flags = SDL_WINDOW_RESIZABLE;
-  gWindow = SDL_CreateWindow("Bezier Playground", SDL_WINDOWPOS_UNDEFINED,
-                             SDL_WINDOWPOS_UNDEFINED, WINDOW_WIDTH,
-                             WINDOW_HEIGHT, window_flags);
-  if (!gWindow) {
-    std::cerr << "SDL_Window error: " << SDL_GetError() << std::endl;
-    return false;
-  }
-
-  gRenderer = SDL_CreateRenderer(gWindow, -1, SDL_RENDERER_PRESENTVSYNC);
-  if (!gRenderer) {
-    std::cerr << "SDL_Renderer error: " << SDL_GetError() << std::endl;
-    return false;
-  }
-
-  gTexture = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_RGBA8888,
-                               SDL_TEXTUREACCESS_TARGET, TEXTURE_WIDTH,
-                               TEXTURE_HEIGHT);
-
-  if (!gTexture) {
-    std::cerr << "SDL_Texture error: " << SDL_GetError() << std::endl;
-    return false;
-  }
-
-  gTexture2 = SDL_CreateTexture(gRenderer, SDL_PIXELFORMAT_RGBA8888,
-                               SDL_TEXTUREACCESS_TARGET, TEXTURE_WIDTH/2,
-                               TEXTURE_HEIGHT/2);
-
-  if (!gTexture2) {
-    std::cerr << "SDL_Texture2 error: " << SDL_GetError() << std::endl;
-    return false;
-  }
-
-  return init_imgui();
+  return init_imgui(app);
 }
 
-bool init_imgui() {
+bool init_imgui(const App& app) {
 
+  auto gWindow = app.getWindow();
+  auto gRenderer = app.getRenderer();
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGuiIO &io = ImGui::GetIO();
@@ -154,7 +124,8 @@ void update() {
   return;
 }
 
-void render_imgui() {
+void render_imgui(const App& app) {
+  auto gRenderer = app.getRenderer();
   ImGui_ImplSDLRenderer2_NewFrame(); // order is renderer frame, platform
                                      // frame, imgui frame
   ImGui_ImplSDL2_NewFrame();
@@ -163,12 +134,12 @@ void render_imgui() {
   ImGuiIO &io = ImGui::GetIO();
   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize(ImVec2(400, 0), ImGuiCond_FirstUseEver);
-  SDL_SetRenderTarget(gRenderer, gTexture);
+  SDL_SetRenderTarget(gRenderer, app.getTexture(0));
   SDL_SetRenderDrawColor(gRenderer, 255, 0xAF, 255, 0xFF);
   SDL_RenderClear(gRenderer);// flush the texture with the above color
   SDL_SetRenderTarget(gRenderer, nullptr);
   ImGui::Begin("Metrics", nullptr, 0);
-  ImGui::Image((ImTextureID)(intptr_t)gTexture,
+  ImGui::Image((ImTextureID)(intptr_t)app.getTexture(0),
                ImVec2((float)TEXTURE_WIDTH, (float)TEXTURE_HEIGHT));
   ImGui::End();
 
@@ -176,15 +147,16 @@ void render_imgui() {
                      io.DisplayFramebufferScale.y);
 }
 
-void present() {
+void present(const App& app) {
   ImGui::Render();
   ImGui_ImplSDLRenderer2_RenderDrawData(ImGui::GetDrawData());
-  SDL_RenderPresent(gRenderer);
+  SDL_RenderPresent(app.getRenderer());
 }
 
-void render() {
-  
-  render_imgui();
+void render(const App& app) {
+  auto gRenderer = app.getRenderer(); 
+  render_imgui(app);
+
   const double now = (double)SDL_GetTicks() / 1000; // seconds
   const float red = 0.5 + 0.5 * SDL_sin(now);
   const float green = 0.5 + 0.5 * SDL_sin(now + PI * 1 / 3);
@@ -198,35 +170,30 @@ void render() {
   SDL_RenderClear(gRenderer); // default target == window
   
   for (auto point : gCircles) {
-    render_circle(point.x, point.y, 20);
+    render_circle(app, point.x, point.y, 20);
   }
   // Rendering happens here
   SDL_SetRenderDrawColor(gRenderer, g, r, b, 0xFF);
-  SDL_SetRenderTarget(gRenderer, gTexture2);
+  SDL_SetRenderTarget(gRenderer, app.getTexture(1));
   SDL_RenderClear(gRenderer);
-  SDL_SetRenderDrawColor(gRenderer, 0x00, 0xFF, 0xFF, 0xFF);
+  SDL_SetRenderDrawColor(gRenderer, 0xFF, 0xFF, 0xFF, 0xFF);
   SDL_RenderDrawLine(gRenderer, 0, 0, 100, 100);
   SDL_SetRenderTarget(gRenderer, nullptr);
-  SDL_RenderCopy(gRenderer, gTexture2, NULL, &destRect);
-  present();
+  SDL_RenderCopy(gRenderer, app.getTexture(1), NULL, &destRect);
+  present(app);
 }
 
 void cleanup() {
   ImGui_ImplSDLRenderer2_Shutdown();
   ImGui_ImplSDL2_Shutdown();
   ImGui::DestroyContext();
-  SDL_DestroyTexture(gTexture2);
-  SDL_DestroyTexture(gTexture);
-  SDL_DestroyRenderer(gRenderer);
-  SDL_DestroyWindow(gWindow);
-  SDL_Quit();
 }
 
-void render_circle(int x, int y, int r) {
+void render_circle(const App& app, int x, int y, int r) {
   Uint8 red = 0xFF;
   Uint8 green = 0x0F;
   Uint8 blue = 0x5F;
-  SDL_SetRenderDrawColor(gRenderer, red, green, blue, 0xFF);
+  SDL_SetRenderDrawColor(app.getRenderer(), red, green, blue, 0xFF);
 
   std::vector<SDL_Point> pointBuffer{};
   
@@ -246,5 +213,5 @@ void render_circle(int x, int y, int r) {
     }
   }
 
-  SDL_RenderDrawPoints(gRenderer, pointBuffer.data(), pointBuffer.size());
+  SDL_RenderDrawPoints(app.getRenderer(), pointBuffer.data(), pointBuffer.size());
 }
