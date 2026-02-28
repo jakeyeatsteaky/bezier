@@ -1,4 +1,5 @@
 #pragma once 
+#include "utils.hpp"
 #include <SDL.h>
 #include <SDL_quit.h>
 #include <SDL_rect.h>
@@ -40,7 +41,7 @@ class App {
     App& operator=(App&&) = delete;
     App& operator=(const App&) = delete;
 
-    bool register_imgui();
+    bool register_imgui(_AppStartupFlags_ flags);
     void render_imgui();
     void present() const;
     void print_state()const;
@@ -59,7 +60,7 @@ public:
 
     App() = default;
     ~App();
-    void init();
+    void init(_AppStartupFlags_ flags);
     void run();
 
    void addTexture(SDL_Texture* texture);

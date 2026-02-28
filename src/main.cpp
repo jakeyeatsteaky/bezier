@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "App.hpp"
+#include "utils.hpp"
 #include "Texture.hpp"
 
 // TODO
@@ -19,7 +20,11 @@ int main(int, char **) {
 
   App app;
 
-  app.init();
+  // not subsystem flags, rather "feature" flags of things created within
+  // imgui windows e.g. debug menu, various canvases
+  constexpr uint32_t feature_window_flags = APP_STARTUP_FLAGS_BEZIER | APP_STARTUP_FLAGS_DEBUG;
+
+  app.init(feature_window_flags); 
 
   // should Texture take a reference to the App or a pointer
   Texture imguiTexture(app.getRenderer());

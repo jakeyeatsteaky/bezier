@@ -14,7 +14,7 @@ App::~App() {
   ImGui::DestroyContext();
 }
 
-void App::init() {
+void App::init(_AppStartupFlags_ flags) {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     std::cerr << "SDL_Init error: " << SDL_GetError() << std::endl;
     return;
@@ -40,10 +40,10 @@ void App::init() {
 
   renderer_.reset(pRenderer);
 
-  initialized_ = register_imgui();
+  initialized_ = register_imgui(flags);
 }
 
-bool App::register_imgui() {
+bool App::register_imgui(_AppStartupFlags_ flags) {
   IMGUI_CHECKVERSION();
   ImGui::CreateContext();
   ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
@@ -51,8 +51,37 @@ bool App::register_imgui() {
 
   // Backends combo: SDL2 (platform backend)
   // SDL_Renderer (renderer backend)
-  return ImGui_ImplSDL2_InitForSDLRenderer(getWindow(), getRenderer()) &
+  bool initBackend = ImGui_ImplSDL2_InitForSDLRenderer(getWindow(), getRenderer()) &
          ImGui_ImplSDLRenderer2_Init(getRenderer());
+
+    if (!initBackend) {
+        std::cerr << "Error initializing the ImGui backend" << std::endl;
+        return false;
+    }
+
+    // success == 0
+    // therefore, after init 0x0100 would mean operation C failed
+    //                     op: DCBA
+    // right now it would just be 0x1001 since the only possible
+    // flags are 0x1000 (APP_STARTUP_FLAGS_DEBUG) and 
+    //           0x0001 (APP_STARTUP_FLAGS_BEZIER)
+
+    int success = 0x0000;
+    // handle init flags
+    if (flags & APP_STARTUP_FLAGS_DEBUG) {
+        success |= initialize_debug_window(*this); // return 0 on success 
+    }
+
+    if (flags & APP_STARTUP_FLAGS_BEZIER) {
+        success |= initialize_bezier_window(*this);
+    }
+
+    if (success) {
+        // TODO, create a decode_errors(success) function to get
+        // which feature system failed from the encoded value
+        std::cerr << "Error initializing some features: " << success << std::endl;
+    }
+    return success == 0; 
 }
 
 void App::run() {
@@ -142,18 +171,18 @@ void App::render_imgui() {
                                      // frame, imgui frame
   ImGui_ImplSDL2_NewFrame();
   ImGui::NewFrame();
-  // ImDrawList* dl = ImGui::GetWindowDrawList();
+  ImDrawList* dl = ImGui::GetWindowDrawList();
   ImGuiIO &io = ImGui::GetIO();
-  ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowSize(ImVec2(400, 0), ImGuiCond_FirstUseEver);
-  SDL_SetRenderTarget(getRenderer(), getTexture(0));
-  SDL_SetRenderDrawColor(getRenderer(), 255, 0xAF, 255, 0xFF);
-  SDL_RenderClear(getRenderer());// flush the texture with the above color
-  SDL_SetRenderTarget(getRenderer(), nullptr);
-  ImGui::Begin("Metrics", nullptr, 0);
-  ImGui::Image((ImTextureID)(intptr_t)getTexture(0),
-               ImVec2((float)TEXTURE_WIDTH, (float)TEXTURE_HEIGHT));
-  ImGui::End();
+//   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
+//   ImGui::SetNextWindowSize(ImVec2(400, 0), ImGuiCond_FirstUseEver);
+//   SDL_SetRenderTarget(getRenderer(), getTexture(0));
+//   SDL_SetRenderDrawColor(getRenderer(), 255, 0xAF, 255, 0xFF);
+//   SDL_RenderClear(getRenderer());// flush the texture with the above color
+//   SDL_SetRenderTarget(getRenderer(), nullptr);
+//   ImGui::Begin("Metrics", nullptr, 0);
+//   ImGui::Image((ImTextureID)(intptr_t)getTexture(0),
+//                ImVec2((float)TEXTURE_WIDTH, (float)TEXTURE_HEIGHT));
+//   ImGui::End();
 
   ImGui::SetNextWindowPos(ImVec2(0,0), ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize(ImVec2(200,200), ImGuiCond_FirstUseEver);
