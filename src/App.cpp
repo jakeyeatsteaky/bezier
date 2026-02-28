@@ -1,6 +1,10 @@
 #include "App.hpp"
 #include "utils.hpp"
 
+#include "imgui.h"
+#include "imgui_impl_sdl2.h"
+#include "imgui_impl_sdlrenderer2.h"
+
 void App::init() {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     std::cerr << "SDL_Init error: " << SDL_GetError() << std::endl;
@@ -28,7 +32,19 @@ void App::init() {
 
   renderer_.reset(pRenderer);
 
-  initialized_ = true;
+  initialized_ = register_imgui();
+}
+
+bool App::register_imgui() {
+  IMGUI_CHECKVERSION();
+  ImGui::CreateContext();
+  ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+  ImGui::StyleColorsDark();
+
+  // Backends combo: SDL2 (platform backend)
+  // SDL_Renderer (renderer backend)
+  return ImGui_ImplSDL2_InitForSDLRenderer(getWindow(), getRenderer()) &
+            ImGui_ImplSDLRenderer2_Init(getRenderer());
 }
 
 SDL_Window* App::getWindow() const {

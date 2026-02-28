@@ -38,6 +38,8 @@ class App {
     App(const App&) = delete;
     App& operator=(App&&) = delete;
     App& operator=(const App&) = delete;
+
+    bool register_imgui();
     
     void input();
     void update();

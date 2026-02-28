@@ -44,22 +44,13 @@ std::vector<SDL_Point> gCircles{};
 // - [ ] Still cleaning up the main file so i can jhust call app.run
 // - [ ] maybe add imgui manager
 
-bool init(const App& app);
-bool init_imgui(const App& app);
 void input();
 void update();
 void render(const App& app);
 void render_imgui(const App& app);
 void present(const App& app);
 void cleanup();
-void app_print_imgui_state() {
-  // utility to toggle some cout metrics for imgui state
-  std::cout << "Imgui::GetIO(): \n";
-  std::cout << "\tWantCaptureKeyboard: " << std::boolalpha << ImGui::GetIO().WantCaptureKeyboard << "\n";
-  std::cout << "\tWantCaptureMouse: " << std::boolalpha << ImGui::GetIO().WantCaptureMouse << "\n";
-  std::cout << "\tWantSetMousePos: " << std::boolalpha << ImGui::GetIO().WantSetMousePos;
-  std::cout << std::endl;
-}
+void app_print_imgui_state();
 
 void render_circle(const App& app, int x, int y, int radius);
 
@@ -76,10 +67,6 @@ int main(int, char **) {
   app.addTexture(imguiTexture.getTexture());
   app.addTexture(texture.getTexture());
 
-  if (!init(app)) {
-    return -1;
-  }
-  
   while (gRunning) {
     input();
     update();
@@ -88,11 +75,6 @@ int main(int, char **) {
 
   cleanup();
   return 0;
-}
-
-bool init(const App& app) {
-
-  return init_imgui(app);
 }
 
 bool init_imgui(const App& app) {
@@ -246,4 +228,13 @@ void render_circle(const App& app, int x, int y, int r) {
   }
 
   SDL_RenderDrawPoints(app.getRenderer(), pointBuffer.data(), pointBuffer.size());
+}
+
+void app_print_imgui_state() {
+  // utility to toggle some cout metrics for imgui state
+  std::cout << "Imgui::GetIO(): \n";
+  std::cout << "\tWantCaptureKeyboard: " << std::boolalpha << ImGui::GetIO().WantCaptureKeyboard << "\n";
+  std::cout << "\tWantCaptureMouse: " << std::boolalpha << ImGui::GetIO().WantCaptureMouse << "\n";
+  std::cout << "\tWantSetMousePos: " << std::boolalpha << ImGui::GetIO().WantSetMousePos;
+  std::cout << std::endl;
 }
