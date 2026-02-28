@@ -81,6 +81,12 @@ bool App::register_imgui(_AppStartupFlags_ flags) {
         // which feature system failed from the encoded value
         std::cerr << "Error initializing some features: " << success << std::endl;
     }
+
+    right here intitalize this ImGuI manager class with
+    RAII to handle begin/end conditional logic.  
+    .....maybe app flags can be tied to the bool members of this
+     initially?
+     
     return success == 0; 
 }
 

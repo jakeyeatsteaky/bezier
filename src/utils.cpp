@@ -47,3 +47,14 @@ uint32_t initialize_bezier_window(const App &app) {
 
     return success;
 }
+
+// how to handle the optional nature of these
+// I think we need an Imgui tree structure. something which can manage what things are called
+// per draw call.  A draw call would look like 
+// I want RAII semantics to handle begin/end chunks
+// so it might be like :
+// ImGUIBlob() {init dramw stuff"
+// ~ImGUIBLob() { end frames}
+//  but this class has member bools which can be set dynamically
+// this conditional logic basicsally just goes in a big function that 
+// checks bool and renders a "feature".  a feature is just a begin/end pair
