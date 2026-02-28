@@ -1,5 +1,6 @@
 #include "utils.hpp"
 
+#include "App.hpp"
 #include "imgui.h"
 #include <iostream>
 
@@ -34,15 +35,15 @@ void render_circle(const App &app, int x, int y, int r) {
 }
 
 uint32_t initialize_debug_window(const App &app) {
-  ImGuiIO &io = ImGui::GetIO();
-  ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
-  ImGui::SetNextWindowSize(ImVec2(400, 0), ImGuiCond_FirstUseEver);
-  SDL_SetRenderTarget(app.getRenderer(), app.getTexture(0));
-  SDL_SetRenderDrawColor(app.getRenderer(), 255, 0xAF, 255, 0xFF);
-  SDL_RenderClear(app.getRenderer()); // flush the texture with the above color
-  SDL_SetRenderTarget(app.getRenderer(), nullptr);
-  ImGui::Begin("Metrics", nullptr, 0);
-  ImGui::Image((ImTextureID)(intptr_t)app.getTexture(0),
-               ImVec2((float)TEXTURE_WIDTH, (float)TEXTURE_HEIGHT));
-  ImGui::End();
+  auto success = APP_STARTUP_FLAGS_SUCCESS;
+  [[maybe_unused]] auto failure = APP_STARTUP_FLAGS_DEBUG;
+
+  return success;
+}
+
+uint32_t initialize_bezier_window(const App &app) {
+    auto success = APP_STARTUP_FLAGS_SUCCESS;
+    [[maybe_unused]] auto failure = APP_STARTUP_FLAGS_BEZIER;
+
+    return success;
 }

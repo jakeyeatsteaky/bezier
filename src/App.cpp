@@ -173,16 +173,16 @@ void App::render_imgui() {
   ImGui::NewFrame();
   ImDrawList* dl = ImGui::GetWindowDrawList();
   ImGuiIO &io = ImGui::GetIO();
-//   ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
-//   ImGui::SetNextWindowSize(ImVec2(400, 0), ImGuiCond_FirstUseEver);
-//   SDL_SetRenderTarget(getRenderer(), getTexture(0));
-//   SDL_SetRenderDrawColor(getRenderer(), 255, 0xAF, 255, 0xFF);
-//   SDL_RenderClear(getRenderer());// flush the texture with the above color
-//   SDL_SetRenderTarget(getRenderer(), nullptr);
-//   ImGui::Begin("Metrics", nullptr, 0);
-//   ImGui::Image((ImTextureID)(intptr_t)getTexture(0),
-//                ImVec2((float)TEXTURE_WIDTH, (float)TEXTURE_HEIGHT));
-//   ImGui::End();
+  ImGui::SetNextWindowPos(ImVec2(0, 0), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize(ImVec2(400, 0), ImGuiCond_FirstUseEver);
+  SDL_SetRenderTarget(getRenderer(), getTexture(0));
+  SDL_SetRenderDrawColor(getRenderer(), 255, 0xAF, 255, 0xFF);
+  SDL_RenderClear(getRenderer());// flush the texture with the above color
+  SDL_SetRenderTarget(getRenderer(), nullptr);
+  ImGui::Begin("Metrics", nullptr, 0);
+  ImGui::Image((ImTextureID)(intptr_t)getTexture(0),
+               ImVec2((float)TEXTURE_WIDTH, (float)TEXTURE_HEIGHT));
+  ImGui::End();
 
   ImGui::SetNextWindowPos(ImVec2(0,0), ImGuiCond_FirstUseEver);
   ImGui::SetNextWindowSize(ImVec2(200,200), ImGuiCond_FirstUseEver);

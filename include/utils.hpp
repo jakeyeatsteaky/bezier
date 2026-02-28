@@ -1,18 +1,19 @@
 #pragma once
 #include <cstddef>
-#include "App.hpp"
+#include <cstdint>
 
 typedef enum AppStartupFlags {
-    APP_STARTUP_FLAGS_NONE = 0x0000,
+    APP_STARTUP_FLAGS_SUCCESS = 0x0000,
     APP_STARTUP_FLAGS_BEZIER = 0x0001,
     APP_STARTUP_FLAGS_DEBUG = 0x1000
 } AppStartupFlags;
 
 typedef uint32_t _AppStartupFlags_;
 
-constexpr AppStartupFlags APP_STARTUP_FLAGS_MIN = APP_STARTUP_FLAGS_NONE;
+constexpr AppStartupFlags APP_STARTUP_FLAGS_MIN = APP_STARTUP_FLAGS_SUCCESS;
 constexpr AppStartupFlags APP_STARTUP_FLAGS_MAX = APP_STARTUP_FLAGS_DEBUG;
 
+class App;
 uint32_t initialize_debug_window(const App& app);
 uint32_t initialize_bezier_window(const App& app);
 
