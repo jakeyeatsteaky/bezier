@@ -13,7 +13,9 @@
 #include <array>
 #include <cstddef>
 #include <cstdlib>
+#include <ios>
 #include <iostream>
+#include <type_traits>
 #include <vector>
 
 #include "App.hpp"
@@ -25,6 +27,7 @@ static SDL_Texture*   gTexture = nullptr;
 static SDL_Texture*   gTexture2 = nullptr;
 static SDL_Rect       destRect{100,100,TEXTURE_WIDTH, TEXTURE_HEIGHT};
 static bool gRunning = true;
+static bool gShouldPrintImguiState = false;
 
 std::vector<SDL_Point> gCircles{};
 
@@ -49,6 +52,14 @@ void render(const App& app);
 void render_imgui(const App& app);
 void present(const App& app);
 void cleanup();
+void app_print_imgui_state() {
+  // utility to toggle some cout metrics for imgui state
+  std::cout << "Imgui::GetIO(): \n";
+  std::cout << "\tWantCaptureKeyboard: " << std::boolalpha << ImGui::GetIO().WantCaptureKeyboard << "\n";
+  std::cout << "\tWantCaptureMouse: " << std::boolalpha << ImGui::GetIO().WantCaptureMouse << "\n";
+  std::cout << "\tWantSetMousePos: " << std::boolalpha << ImGui::GetIO().WantSetMousePos;
+  std::cout << std::endl;
+}
 
 void render_circle(const App& app, int x, int y, int radius);
 
@@ -102,8 +113,15 @@ bool init_imgui(const App& app) {
 
 void input() {
   SDL_Event event;
+  auto io = ImGui::GetIO();
   while (SDL_PollEvent(&event)) {
+    
     ImGui_ImplSDL2_ProcessEvent(&event);
+    
+    if (gShouldPrintImguiState) {
+      app_print_imgui_state();
+    }
+
     switch (event.type) {
       case SDL_QUIT:
         gRunning = false;
@@ -113,7 +131,9 @@ void input() {
       case SDL_KEYUP:
         handleKeyboardEvent(event.key, gRunning);
       case SDL_MOUSEBUTTONDOWN:
-        handleMouseButtonEvent(event.button, gCircles);
+        if (!io.WantCaptureMouse) {
+          handleMouseButtonEvent(event.button, gCircles);
+        }
         return;
       case SDL_MOUSEBUTTONUP:
         handleMouseButtonEvent(event.button, gCircles);
@@ -146,6 +166,14 @@ void render_imgui(const App& app) {
   ImGui::Image((ImTextureID)(intptr_t)app.getTexture(0),
                ImVec2((float)TEXTURE_WIDTH, (float)TEXTURE_HEIGHT));
   ImGui::End();
+
+  ImGui::SetNextWindowPos(ImVec2(0,0), ImGuiCond_FirstUseEver);
+  ImGui::SetNextWindowSize(ImVec2(200,200), ImGuiCond_FirstUseEver);
+  ImGui::Begin("App Utilities");
+  bool buttonClicked = ImGui::Button("Toggle App Util");
+  gShouldPrintImguiState = (buttonClicked) ? !gShouldPrintImguiState : gShouldPrintImguiState;
+  ImGui::End();
+
 
   SDL_RenderSetScale(gRenderer, io.DisplayFramebufferScale.x,
                      io.DisplayFramebufferScale.y);
