@@ -53,8 +53,8 @@ class App {
     std::unique_ptr<SDL_Renderer, AppDeleter::RendererDeleter> renderer_;
     std::vector<SDL_Texture*> textures_;
     bool appShouldRun_ = true;
-    bool printState_ = false;
 public:
+    bool printState_ = false;
     bool initialized_ = false;
 
     App() = default;
