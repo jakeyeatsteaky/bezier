@@ -4,17 +4,13 @@
 #include "utils.hpp"
 #include "Texture.hpp"
 
-// TODO
-// [ ] Put frame rate into Metrics window, add TTF_Font 
-// [ ] Render circle via click
-
 // refactor for better architecture
-// - [ ] AppState
 // - [ ] Event registtration, so when I click, app listeners can update
-// - [ ] Lots of things to wire up, background should be dictated by an imgui color wheel,
 
-// Refactor
-// - [ ] maybe add imgui manager
+// Things to add to app utilities window
+// - [ ] color wheel to modify app background
+// - [ ] buttons for dynamic ui options (features)
+// - [ ] fps counter
 
 int main(int, char **) {
 

@@ -1,16 +1,11 @@
 #include "App.hpp"
-#include "imgui.h"
+#include "UIManager.hpp"
 #include "input.hpp"
 #include "utils.hpp"
-#include "UIManager.hpp"
 
+static SDL_Rect destRect{100, 100, TEXTURE_WIDTH, TEXTURE_HEIGHT};
 
-
-static SDL_Rect       destRect{100,100,TEXTURE_WIDTH, TEXTURE_HEIGHT};
-
-App::~App() {
-  UIManager::shutdown();
-}
+App::~App() { UIManager::shutdown(); }
 
 void App::init(_AppStartupFlags_ flags) {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
@@ -38,7 +33,7 @@ void App::init(_AppStartupFlags_ flags) {
 
   renderer_.reset(pRenderer);
 
-//   initialized_ = register_imgui(flags);
+  //   initialized_ = register_imgui(flags);
 
   initialized_ = UIManager::instance().init(*this);
 }
@@ -98,7 +93,7 @@ void App::update() { return; }
 
 void App::render() {
 
-    UIManager::instance().render(*this);
+  UIManager::instance().render(*this);
   const double now = (double)SDL_GetTicks() / 1000; // seconds
   const float red = 0.5 + 0.5 * SDL_sin(now);
   const float green = 0.5 + 0.5 * SDL_sin(now + PI * 1 / 3);
