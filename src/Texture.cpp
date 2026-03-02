@@ -26,6 +26,19 @@ Texture::Texture(SDL_Renderer *renderer)
   texture_.reset(pTexture);
 }
 
+Texture::Texture(TextureConfig&& config, SDL_Renderer* renderer) : appRenderer_(renderer), config_(config) {
+  auto pTexture =
+      SDL_CreateTexture(renderer, config_.pixelFormat_, config_.access_,
+                        config_.width_, config_.height_);
+  if (!pTexture) {
+    std::cerr << "SDL_Texture error: " << SDL_GetError() << std::endl;
+    return;
+  }
+
+  texture_.reset(pTexture);
+}
+
 SDL_Texture* Texture::getTexture() const {
     return texture_.get();
 }
+

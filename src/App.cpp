@@ -2,6 +2,8 @@
 #include "UIManager.hpp"
 #include "input.hpp"
 #include "utils.hpp"
+#include <SDL_events.h>
+#include <SDL_render.h>
 
 static SDL_Rect destRect{100, 100, TEXTURE_WIDTH, TEXTURE_HEIGHT};
 
@@ -25,7 +27,7 @@ void App::init(_AppStartupFlags_ flags) {
   window_.reset(pWindow);
 
   auto pRenderer =
-      SDL_CreateRenderer(window_.get(), -1, SDL_RENDERER_PRESENTVSYNC);
+      SDL_CreateRenderer(window_.get(), -1, SDL_RENDERER_PRESENTVSYNC | SDL_RENDERER_ACCELERATED);
   if (!pRenderer) {
     std::cerr << "SDL_Renderer error: " << SDL_GetError() << std::endl;
     return;
@@ -111,12 +113,7 @@ void App::render() {
   }
   // Rendering happens here
   SDL_SetRenderDrawColor(getRenderer(), g, r, b, 0xFF);
-  SDL_SetRenderTarget(getRenderer(), getTexture(1));
-  SDL_RenderClear(getRenderer());
-  SDL_SetRenderDrawColor(getRenderer(), 0xFF, 0xFF, 0xFF, 0xFF);
-  SDL_RenderDrawLine(getRenderer(), 0, 0, 100, 100);
   SDL_SetRenderTarget(getRenderer(), nullptr);
-  SDL_RenderCopy(getRenderer(), getTexture(1), NULL, &destRect);
   present();
 }
 

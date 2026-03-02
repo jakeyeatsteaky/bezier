@@ -77,9 +77,9 @@ void render_debug_ui(const App &app) {
   SDL_SetRenderDrawColor(app.getRenderer(), 255, 0xAF, 255, 0xFF);
   SDL_RenderClear(app.getRenderer()); // flush the texture with the above color
   SDL_SetRenderTarget(app.getRenderer(), nullptr);
-  ImGui::Begin("Metrics", nullptr, 0);
+  ImGui::Begin("Bezier Canvas", nullptr, 0);
   ImGui::Image((ImTextureID)(intptr_t)app.getTexture(0),
-               ImVec2((float)TEXTURE_WIDTH, (float)TEXTURE_HEIGHT));
+               ImVec2((float)660.f, (float)440.f)); // dumb dumb, need to get wh from tesxture
   ImGui::End();
 }
 

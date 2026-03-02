@@ -1,3 +1,5 @@
+#include <SDL_pixels.h>
+#include <SDL_render.h>
 #include <iostream>
 
 #include "App.hpp"
@@ -23,11 +25,16 @@ int main(int, char **) {
   app.init(feature_window_flags); 
 
   // should Texture take a reference to the App or a pointer
-  Texture imguiTexture(app.getRenderer());
-  Texture texture(app.getRenderer());
+  TextureConfig config = {
+    .pixelFormat_ = SDL_PIXELFORMAT_RGBA8888,
+    .access_ = SDL_TEXTUREACCESS_TARGET,
+    .width_ = 660,
+    .height_ = 440
+  }; 
+
+  Texture imguiTexture(std::move(config), app.getRenderer());
 
   app.addTexture(imguiTexture.getTexture());
-  app.addTexture(texture.getTexture());
 
   try {
     app.run();

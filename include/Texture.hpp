@@ -29,6 +29,7 @@ class Texture {
     static TextureConfig GetDefaultTextureConfig();
 public:
     explicit Texture(SDL_Renderer* renderer);
+    explicit Texture(TextureConfig&& config, SDL_Renderer* renderer);
     Texture() = delete;
     ~Texture() = default;
     Texture(const Texture& copy);
@@ -37,5 +38,7 @@ public:
     Texture& operator=(Texture&& move) noexcept;
 
     void setTextureConfig(TextureConfig&& config);
+    int width() const {return config_.width_;}
+    int height() const {return config_.height_;}
     SDL_Texture* getTexture() const;
 };
