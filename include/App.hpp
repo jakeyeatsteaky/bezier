@@ -8,6 +8,7 @@
 #include <memory>
 #include <iostream>
 #include <vector>
+#include <array>
 
 namespace AppDeleter {
     struct WindowDeleter {
@@ -44,11 +45,14 @@ class App {
     void render_imgui();
     void present() const;
     void print_state()const;
+
+    void clear_background() const;
     
     void input();
     void update();
     void render();
 
+    SDL_Color backgroundColor_;
     std::unique_ptr<SDL_Window, AppDeleter::WindowDeleter> window_;
     std::unique_ptr<SDL_Renderer, AppDeleter::RendererDeleter> renderer_;
     std::vector<SDL_Texture*> textures_;
@@ -64,6 +68,8 @@ public:
 
    void addTexture(SDL_Texture* texture);
    SDL_Texture* getTexture(size_t idx) const; 
+
+   void setBGColorF(float r, float g, float b);
 
    std::vector<SDL_Point> circles_;
 

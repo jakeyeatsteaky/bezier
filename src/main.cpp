@@ -32,9 +32,6 @@ int main(int, char **) {
     .height_ = 440
   }; 
 
-  Texture imguiTexture(std::move(config), app.getRenderer());
-
-  app.addTexture(imguiTexture.getTexture());
 
   try {
     app.run();

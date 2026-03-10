@@ -34,6 +34,20 @@ void render_circle(const App &app, int x, int y, int r) {
                        pointBuffer.size());
 }
 
+SDL_Color get_smooth_color_change() {
+  // to be called in the render loop to produce color gradient on each frame
+  const double now = (double)SDL_GetTicks() / 1000; // seconds
+  const float red = 0.5 + 0.5 * SDL_sin(now);
+  const float green = 0.5 + 0.5 * SDL_sin(now + PI * 1 / 3);
+  const float blue = 0.5 + 0.5 * SDL_sin(now + PI * 5 / 3);
+
+  const uint8_t r = static_cast<uint8_t>(red * 0xFF);
+  const uint8_t g = static_cast<uint8_t>(green * 0xFF);
+  const uint8_t b = static_cast<uint8_t>(blue * 0xFF);
+
+  return SDL_Color{r,g,b};
+}
+
 uint32_t initialize_debug_window(const App &app) {
   auto success = APP_STARTUP_FLAGS_SUCCESS;
   [[maybe_unused]] auto failure = APP_STARTUP_FLAGS_DEBUG;

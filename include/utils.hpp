@@ -1,4 +1,5 @@
 #pragma once
+#include <SDL_pixels.h>
 #include <cstddef>
 #include <cstdint>
 
@@ -24,4 +25,5 @@ constexpr size_t TEXTURE_WIDTH = 200;
 constexpr size_t TEXTURE_HEIGHT = 150;
 
 void render_circle(const App& app, int x, int y, int radius);
+SDL_Color get_smooth_color_change(double now);
 
